@@ -1,0 +1,32 @@
+{
+  "name": "periodico-backend",
+  "version": "2.0.0",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "init-db": "node scripts/init-db.js",
+    "crear-admin": "node scripts/crear-admin.js",
+    "migrar-json": "node scripts/migrar-json.js",
+    "migrar-aprobado": "node scripts/migrar-aprobado-emprendedores.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "Backend de Periódico Azteca",
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "cloudinary": "^2.5.1",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "express-rate-limit": "^7.4.1",
+    "jsonwebtoken": "^9.0.3",
+    "multer": "^2.3.0",
+    "pg": "^8.13.0",
+    "streamifier": "^0.1.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }
+}

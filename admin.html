@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Admin - ¡Que todo cobach se entere!</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #f5f5f5; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+
+        .login-container {
+            max-width: 400px;
+            margin: 100px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .login-container h1 { text-align: center; margin-bottom: 20px; }
+        .login-container input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        .login-container button {
+            width: 100%;
+            padding: 12px;
+            background: #6B1D2F;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .login-container button:hover { background: #C89B5E; color: #4A0F1A; }
+        .error { color: red; text-align: center; margin-top: 10px; }
+
+        .dashboard { display: none; }
+        .header {
+            background: #6B1D2F;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .header button {
+            background: #C89B5E;
+            color: #4A0F1A;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .header button:hover { background: #b0884a; }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .card .numero { font-size: 32px; font-weight: bold; color: #6B1D2F; }
+
+        .seccion {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .seccion h2 {
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            color: #3A1C0E;
+        }
+        .seccion h2 button {
+            background: #6B1D2F;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .seccion h2 button:hover { background: #C89B5E; color: #4A0F1A; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th {
+            text-align: left;
+            padding: 10px;
+            background: #f0ede8;
+            color: #3A1C0E;
+        }
+        td {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        .btn-eliminar {
+            background: #e94560;
+            color: white;
+            border: none;
+            padding: 5px 12px;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        .btn-eliminar:hover { background: #c73652; }
+        .btn-editar {
+            background: #C89B5E;
+            color: #4A0F1A;
+            border: none;
+            padding: 5px 12px;
+            border-radius: 3px;
+            cursor: pointer;
+            margin-right: 5px;
+        }
+        .btn-editar:hover { background: #b0884a; }
+
+        .formulario {
+            display: none;
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 15px;
+        }
+        .formulario input,
+        .formulario textarea,
+        .formulario select {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        .formulario textarea { min-height: 80px; resize: vertical; }
+        .formulario button {
+            background: #6B1D2F;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .formulario .cancelar {
+            background: #999;
+            margin-left: 10px;
+        }
+        .formulario .cancelar:hover { background: #777; }
+
+        .vacio { text-align: center; color: #999; padding: 20px; }
+        .oculto { display: none; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <!-- LOGIN -->
+    <div id="login" class="login-container">
+        <h1>🔐 Panel Admin</h1>
+        <input type="text" id="username" placeholder="Usuario" value="edgar">
+        <input type="password" id="password" placeholder="Contraseña" value="admin123">
+        <button onclick="login()">Iniciar Sesión</button>
+        <div id="errorLogin" class="error"></div>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div id="dashboard" class="dashboard">
+        <div class="header">
+            <h1>📰 Panel Admin - ¡Que todo cobach se entere!</h1>
+            <div>
+                <span id="infoUsuario" style="margin-right:15px;"></span>
+                <button onclick="cerrarSesion()">Cerrar Sesión</button>
+            </div>
+        </div>
+
+        <div class="cards">
+            <div class="card"><h3>📬 Mensajes</h3><div class="numero" id="totalMensajes">0</div></div>
+            <div class="card"><h3>📰 Noticias</h3><div class="numero" id="totalNoticias">0</div></div>
+            <div class="card"><h3>🏢 Emprendedores</h3><div class="numero" id="totalEmprendedores">0</div></div>
+            <div class="card"><h3>⭐ Reseñas</h3><div class="numero" id="totalResenas">0</div></div>
+            <div class="card"><h3>📅 Eventos</h3><div class="numero" id="totalEventos">0</div></div>
+        </div>
+
+        <!-- BUZÓN -->
+        <div class="seccion" id="seccionBuzon">
+            <h2>📬 Mensajes del Buzón</h2>
+            <div id="listaMensajes"><div class="vacio">Cargando...</div></div>
+        </div>
+
+        <!-- NOTICIAS -->
+        <div class="seccion" id="seccionNoticias">
+            <h2>📰 Gestión de Noticias <button onclick="mostrarFormularioNoticia()">+ Agregar</button></h2>
+            <div id="listaNoticias"><div class="vacio">Cargando...</div></div>
+            <div id="formularioNoticia" class="formulario">
+                <input type="text" id="notiTitulo" placeholder="Título de la noticia">
+                <input type="text" id="notiResumen" placeholder="Resumen (breve descripción)">
+                <textarea id="notiContenido" placeholder="Contenido completo..." rows="4"></textarea>
+                <input type="text" id="notiCategoria" placeholder="Categoría (ej: Cultura, Economía)">
+                <input type="text" id="notiImagen" placeholder="URL de la imagen (opcional)">
+                <select id="notiDestacada">
+                    <option value="false">No destacada</option>
+                    <option value="true">Destacada</option>
+                </select>
+                <button onclick="guardarNoticia()">Guardar Noticia</button>
+                <button class="cancelar" onclick="ocultarFormularioNoticia()">Cancelar</button>
+            </div>
+        </div>
+
+        <!-- EMPRENDEDORES -->
+        <div class="seccion" id="seccionEmprendedores">
+            <h2>🏢 Emprendedores <button onclick="mostrarFormularioEmprendedor()">+ Agregar</button></h2>
+            <div id="listaEmprendedores"><div class="vacio">Cargando...</div></div>
+            <div id="formularioEmprendedor" class="formulario">
+                <input type="text" id="empNombre" placeholder="Nombre">
+                <input type="text" id="empRubro" placeholder="Rubro">
+                <input type="text" id="empDescripcion" placeholder="Descripción">
+                <input type="text" id="empLogo" placeholder="URL del logo (opcional)">
+                <input type="text" id="empLink" placeholder="URL del sitio (opcional)">
+                <button onclick="guardarEmprendedor()">Guardar</button>
+                <button class="cancelar" onclick="ocultarFormularioEmprendedor()">Cancelar</button>
+            </div>
+        </div>
+
+        <!-- EVENTOS -->
+        <div class="seccion" id="seccionEventos">
+            <h2>📅 Gestión de Eventos <button onclick="mostrarFormularioEvento()">+ Agregar</button></h2>
+            <div id="listaEventos"><div class="vacio">Cargando...</div></div>
+            <div id="formularioEvento" class="formulario">
+                <input type="text" id="evTitulo" placeholder="Título del evento">
+                <input type="text" id="evDescripcion" placeholder="Descripción">
+                <input type="date" id="evFecha">
+                <input type="text" id="evLugar" placeholder="Lugar (ej: Cobach)">
+                <button onclick="guardarEvento()">Guardar Evento</button>
+                <button class="cancelar" onclick="ocultarFormularioEvento()">Cancelar</button>
+            </div>
+        </div>
+
+        <!-- RESEÑAS -->
+        <div class="seccion" id="seccionResenas">
+            <h2>⭐ Reseñas y Sugerencias</h2>
+            <div id="listaResenas"><div class="vacio">Cargando...</div></div>
+        </div>
+
+        <!-- DINÁMICAS -->
+        <div class="seccion" id="seccionDinamicas">
+            <h2>📝 Gestión de Dinámicas</h2>
+            <div id="listaDinamicas"><div class="vacio">Cargando...</div></div>
+            <div id="formularioDinamica" class="formulario">
+                <input type="text" id="dinTitulo" placeholder="Título de la dinámica">
+                <textarea id="dinContenido" placeholder="Contenido de la dinámica..." rows="4"></textarea>
+                <button onclick="guardarDinamica()">Guardar Dinámica</button>
+                <button class="cancelar" onclick="ocultarFormularioDinamica()">Cancelar</button>
+            </div>
+        </div>
+
+        <!-- USUARIOS (WHITELIST) -->
+        <div class="seccion" id="seccionUsuarios">
+            <h2>👥 Colaboradores <button onclick="mostrarFormularioUsuario()">+ Agregar</button></h2>
+            <div id="listaUsuarios"><div class="vacio">Cargando...</div></div>
+            <div id="formularioUsuario" class="formulario">
+                <input type="text" id="userNombre" placeholder="Usuario">
+                <input type="password" id="userPassword" placeholder="Contraseña">
+                <select id="userRol">
+                    <option value="colaborador">Colaborador</option>
+                    <option value="editor">Editor</option>
+                </select>
+                <button onclick="guardarUsuario()">Crear</button>
+                <button class="cancelar" onclick="ocultarFormularioUsuario()">Cancelar</button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    const API_URL = window.location.origin;
+    let token = '';
+    let usuarioActual = null;
+
+    // ==========================================
+    // LOGIN
+    // ==========================================
+
+    async function login() {
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+        const errorDiv = document.getElementById('errorLogin');
+        errorDiv.textContent = '';
+
+        try {
+            const res = await fetch(`${API_URL}/api/auth/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                token = data.token;
+                usuarioActual = data.usuario;
+                localStorage.setItem('token', token);
+                localStorage.setItem('usuario', JSON.stringify(usuarioActual));
+                document.getElementById('login').style.display = 'none';
+                document.getElementById('dashboard').style.display = 'block';
+                document.getElementById('infoUsuario').textContent = `👤 ${usuarioActual.username} (${usuarioActual.rol})`;
+                cargarTodo();
+            } else {
+                errorDiv.textContent = '❌ ' + data.message;
+            }
+        } catch (e) {
+            errorDiv.textContent = '❌ Error de conexión';
+        }
+    }
+
+    // ==========================================
+    // CARGAR TODO
+    // ==========================================
+
+    async function cargarTodo() {
+        await cargarMensajes();
+        await cargarNoticias();
+        await cargarEmprendedores();
+        await cargarResenas();
+        await cargarEventos();
+        await cargarDinamicas();
+        await cargarUsuarios();
+        ajustarVisibilidad();
+    }
+
+    function ajustarVisibilidad() {
+        if (usuarioActual.rol !== 'propietario') {
+            document.getElementById('seccionBuzon').style.display = 'none';
+            document.getElementById('seccionUsuarios').style.display = 'none';
+        }
+    }
+
+    // ==========================================
+    // MENSAJES
+    // ==========================================
+
+    async function cargarMensajes() {
+        try {
+            const res = await fetch(`${API_URL}/api/buzon`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.status === 403) return;
+            const data = await res.json();
+            document.getElementById('totalMensajes').textContent = data.length;
+            const lista = document.getElementById('listaMensajes');
+            if (data.length === 0) {
+                lista.innerHTML = '<div class="vacio">📭 No hay mensajes</div>';
+                return;
+            }
+            let html = `<table><tr><th>Fecha</th><th>Mensaje</th><th>Acción</th></tr>`;
+            data.forEach(m => {
+                html += `<tr>
+                    <td>${new Date(m.fecha).toLocaleString()}</td>
+                    <td>${m.mensaje}</td>
+                    <td><button class="btn-eliminar" onclick="eliminarMensaje('${m.id}')">Eliminar</button></td>
+                </tr>`;
+            });
+            html += '</table>';
+            lista.innerHTML = html;
+        } catch (e) { console.error(e); }
+    }
+
+    async function eliminarMensaje(id) {
+        if (!confirm('¿Eliminar este mensaje?')) return;
+        try {
+            await fetch(`${API_URL}/api/buzon/${id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            cargarMensajes();
+        } catch (e) { alert('Error'); }
+    }
+
+    // ==========================================
+    // NOTICIAS
+    // ==========================================
+
+    async function cargarNoticias() {
+        try {
+            const res = await fetch(`${API_URL}/api/noticias`);
+            const data = await res.json();
+            document.getElementById('totalNoticias').textContent = data.length;
+            const lista = document.getElementById('listaNoticias');
+            if (data.length === 0) {
+                lista.innerHTML = '<div class="vacio">No hay noticias</div>';
+                return;
+            }
+            let html = `<table><tr><th>Título</th><th>Categoría</th><th>Acciones</th></tr>`;
+            data.forEach(n => {
+                html += `<tr>
+                    <td>${n.titulo}</td>
+                    <td>${n.categoria}</td>
+                    <td><button class="btn-eliminar" onclick="eliminarNoticia('${n.id}')">Eliminar</button></td>
+                </tr>`;
+            });
+            html += '</table>';
+            lista.innerHTML = html;
+        } catch (error) {
+            console.error('Error al cargar noticias:', error);
+        }
+    }
+
+    function mostrarFormularioNoticia() {
+        document.getElementById('formularioNoticia').style.display = 'block';
+        document.querySelectorAll('#formularioNoticia input, #formularioNoticia textarea').forEach(i => i.value = '');
+    }
+
+    function ocultarFormularioNoticia() {
+        document.getElementById('formularioNoticia').style.display = 'none';
+    }
+
+    async function guardarNoticia() {
+        const data = {
+            titulo: document.getElementById('notiTitulo').value,
+            resumen: document.getElementById('notiResumen').value,
+            contenido: document.getElementById('notiContenido').value,
+            categoria: document.getElementById('notiCategoria').value || 'General',
+            imagen_url: document.getElementById('notiImagen').value || '',
+            destacada: document.getElementById('notiDestacada').value === 'true'
+        };
+
+        if (!data.titulo || !data.resumen || !data.contenido) {
+            alert('❌ Completa todos los campos obligatorios');
+            return;
+        }
+
+        try {
+            const res = await fetch(`${API_URL}/api/noticias`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(data)
+            });
+            if (res.ok) {
+                ocultarFormularioNoticia();
+                cargarNoticias();
+                alert('✅ Noticia agregada');
+            } else {
+                alert('❌ Error al guardar');
+            }
+        } catch (error) {
+            alert('❌ Error al guardar');
+        }
+    }
+
+    async function eliminarNoticia(id) {
+        if (!confirm('¿Eliminar esta noticia?')) return;
+        try {
+            await fetch(`${API_URL}/api/noticias/${id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            cargarNoticias();
+        } catch (error) {
+            alert('Error al eliminar');
+        }
+    }
+
+    // ==========================================
+    // EMPRENDEDORES
+    // ==========================================
+
+    async function cargarEmprendedores() {
+        try {
+            const res = await fetch(`${API_URL}/api/emprendedores`);
+            const data = await res.json();
+            document.getElementById('totalEmprendedores').textContent = data.length;
+            const lista = document.getElementById('listaEmprendedores');
+            if (data.length === 0) {
+                lista.innerHTML = '<div class="vacio">🏢 No hay emprendedores</div>';
+                return;
+            }
+            let html = `<table><tr><th>Nombre</th><th>Rubro</th><th>Acción</th></tr>`;
+            data.forEach(e => {
+                html += `<tr>
+                    <td>${e.nombre}</td>
+                    <td>${e.rubro}</td>
+                    <td><button class="btn-eliminar" onclick="eliminarEmprendedor('${e.id}')">Eliminar</button></td>
+                </tr>`;
+            });
+            html += '</table>';
+            lista.innerHTML = html;
+        } catch (e) { console.error(e); }
+    }
+
+    function mostrarFormularioEmprendedor() {
+        document.getElementById('formularioEmprendedor').style.display = 'block';
+        document.querySelectorAll('#formularioEmprendedor input').forEach(i => i.value = '');
+    }
+
+    function ocultarFormularioEmprendedor() {
+        document.getElementById('formularioEmprendedor').style.display = 'none';
+    }
+
+    async function guardarEmprendedor() {
+        const data = {
+            nombre: document.getElementById('empNombre').value,
+            rubro: document.getElementById('empRubro').value,
+            descripcion: document.getElementById('empDescripcion').value,
+            logo_url: document.getElementById('empLogo').value,
+            link: document.getElementById('empLink').value
+        };
+
+        if (!data.nombre || !data.rubro) {
+            alert('❌ Completa nombre y rubro');
+            return;
+        }
+
+        try {
+            const res = await fetch(`${API_URL}/api/emprendedores`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(data)
+            });
+            if (res.ok) {
+                ocultarFormularioEmprendedor();
+                cargarEmprendedores();
+                alert('✅ Emprendedor agregado');
+            } else {
+                alert('❌ Error al guardar');
+            }
+        } catch (error) {
+            alert('❌ Error al guardar');
+        }
+    }
+
+    async function eliminarEmprendedor(id) {
+        if (!confirm('¿Eliminar?')) return;
+        try {
+            await fetch(`${API_URL}/api/emprendedores/${id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            cargarEmprendedores();
+        } catch (e) { alert('Error'); }
+    }
+
+    // ==========================================
+    // RESEÑAS
+    // ==========================================
+
+    async function cargarResenas() {
+        try {
+            const res = await fetch(`${API_URL}/api/resenas`);
+            const data = await res.json();
+            document.getElementById('totalResenas').textContent = data.length;
+            const lista = document.getElementById('listaResenas');
+            if (data.length === 0) {
+                lista.innerHTML = '<div class="vacio">No hay reseñas</div>';
+                return;
+            }
+            let html = `<table><tr><th>Usuario</th><th>Puntuación</th><th>Comentario</th><th>Fecha</th></tr>`;
+            data.forEach(r => {
+                const estrellas = '⭐'.repeat(r.puntuacion) + '☆'.repeat(5 - r.puntuacion);
+                html += `<tr>
+                    <td>${r.usuario || 'Anónimo'}</td>
+                    <td>${estrellas}</td>
+                    <td>${r.texto}</td>
+                    <td>${r.fecha}</td>
+                </tr>`;
+            });
+            html += '</table>';
+            lista.innerHTML = html;
+        } catch (error) {
+            console.error('Error al cargar reseñas:', error);
+        }
+    }
+
+    // ==========================================
+    // EVENTOS
+    // ==========================================
+
+    async function cargarEventos() {
+        try {
+            const res = await fetch(`${API_URL}/api/eventos`);
+            const data = await res.json();
+            document.getElementById('totalEventos').textContent = data.length;
+            const lista = document.getElementById('listaEventos');
+            if (data.length === 0) {
+                lista.innerHTML = '<div class="vacio">📅 No hay eventos</div>';
+                return;
+            }
+            let html = `<table><tr><th>Título</th><th>Fecha</th><th>Lugar</th><th>Acciones</th></tr>`;
+            data.forEach(e => {
+                html += `<tr>
+                    <td>${e.titulo}</td>
+                    <td>${new Date(e.fecha).toLocaleDateString('es-MX')}</td>
+                    <td>${e.lugar || 'Cobach'}</td>
+                    <td><button class="btn-eliminar" onclick="eliminarEvento('${e.id}')">Eliminar</button></td>
+                </tr>`;
+            });
+            html += '</table>';
+            lista.innerHTML = html;
+        } catch (error) {
+            console.error('Error al cargar eventos:', error);
+        }
+    }
+
+    function mostrarFormularioEvento() {
+        document.getElementById('formularioEvento').style.display = 'block';
+        document.querySelectorAll('#formularioEvento input').forEach(i => i.value = '');
+    }
+
+    function ocultarFormularioEvento() {
+        document.getElementById('formularioEvento').style.display = 'none';
+    }
+
+    async function guardarEvento() {
+        const data = {
+            titulo: document.getElementById('evTitulo').value,
+            descripcion: document.getElementById('evDescripcion').value,
+            fecha: document.getElementById('evFecha').value,
+            lugar: document.getElementById('evLugar').value || 'Cobach'
+        };
+
+        if (!data.titulo || !data.fecha) {
+            alert('❌ Completa título y fecha');
+            return;
+        }
+
+        try {
+            const res = await fetch(`${API_URL}/api/eventos`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(data)
+            });
+            if (res.ok) {
+                ocultarFormularioEvento();
+                cargarEventos();
+                alert('✅ Evento agregado');
+            } else {
+                alert('❌ Error al guardar');
+            }
+        } catch (error) {
+            alert('❌ Error al guardar');
+        }
+    }
+
+    async function eliminarEvento(id) {
+        if (!confirm('¿Eliminar este evento?')) return;
+        try {
+            await fetch(`${API_URL}/api/eventos/${id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            cargarEventos();
+        } catch (error) {
+            alert('Error al eliminar');
+        }
+    }
+
+    // ==========================================
+    // DINÁMICAS
+    // ==========================================
+
+    async function cargarDinamicas() {
+        try {
+            const res = await fetch(`${API_URL}/api/dinamicas`);
+            const data = await res.json();
+            const lista = document.getElementById('listaDinamicas');
+            if (data.length === 0) {
+                lista.innerHTML = '<div class="vacio">No hay dinámicas</div>';
+                return;
+            }
+            let html = `<table><tr><th>Título</th><th>Contenido</th><th>Acciones</th></tr>`;
+            data.forEach(d => {
+                html += `<tr>
+                    <td>${d.titulo || 'Sin título'}</td>
+                    <td>${d.contenido ? d.contenido.substring(0, 50) + '...' : 'Sin contenido'}</td>
+                    <td>
+                        <button class="btn-editar" onclick="editarDinamica('${d.id}')">Editar</button>
+                    </td>
+                </tr>`;
+            });
+            html += '</table>';
+            lista.innerHTML = html;
+        } catch (error) {
+            console.error('Error al cargar dinámicas:', error);
+        }
+    }
+
+    function editarDinamica(id) {
+        document.getElementById('formularioDinamica').style.display = 'block';
+        document.getElementById('formularioDinamica').dataset.id = id;
+        fetch(`${API_URL}/api/dinamicas`)
+            .then(res => res.json())
+            .then(data => {
+                const d = data.find(item => item.id === parseInt(id));
+                if (d) {
+                    document.getElementById('dinTitulo').value = d.titulo || '';
+                    document.getElementById('dinContenido').value = d.contenido || '';
+                }
+            });
+    }
+
+    function ocultarFormularioDinamica() {
+        document.getElementById('formularioDinamica').style.display = 'none';
+        document.getElementById('formularioDinamica').dataset.id = '';
+        document.getElementById('dinTitulo').value = '';
+        document.getElementById('dinContenido').value = '';
+    }
+
+    async function guardarDinamica() {
+        const id = document.getElementById('formularioDinamica').dataset.id;
+        const titulo = document.getElementById('dinTitulo').value;
+        const contenido = document.getElementById('dinContenido').value;
+
+        if (!titulo || !contenido) {
+            alert('❌ Completa todos los campos');
+            return;
+        }
+
+        try {
+            const res = await fetch(`${API_URL}/api/dinamicas/${id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ titulo, contenido })
+            });
+            if (res.ok) {
+                ocultarFormularioDinamica();
+                cargarDinamicas();
+                alert('✅ Dinámica actualizada');
+            } else {
+                alert('❌ Error al guardar');
+            }
+        } catch (error) {
+            alert('❌ Error al guardar');
+        }
+    }
+
+    // ==========================================
+    // USUARIOS (WHITELIST)
+    // ==========================================
+
+    async function cargarUsuarios() {
+        try {
+            const res = await fetch(`${API_URL}/api/usuarios`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.status === 403) {
+                document.getElementById('seccionUsuarios').style.display = 'none';
+                return;
+            }
+            const data = await res.json();
+            const lista = document.getElementById('listaUsuarios');
+            if (data.length === 0) {
+                lista.innerHTML = '<div class="vacio">No hay usuarios</div>';
+                return;
+            }
+            let html = `<table><tr><th>Usuario</th><th>Rol</th><th>Acción</th></tr>`;
+            data.forEach(u => {
+                html += `<tr>
+                    <td>${u.username}</td>
+                    <td>${u.rol}</td>
+                    <td>${u.rol !== 'propietario' ? `<button class="btn-eliminar" onclick="eliminarUsuario('${u.id}')">Eliminar</button>` : '👑'}</td>
+                </tr>`;
+            });
+            html += '</table>';
+            lista.innerHTML = html;
+        } catch (e) { console.error(e); }
+    }
+
+    function mostrarFormularioUsuario() {
+        document.getElementById('formularioUsuario').style.display = 'block';
+        document.getElementById('userNombre').value = '';
+        document.getElementById('userPassword').value = '';
+    }
+
+    function ocultarFormularioUsuario() {
+        document.getElementById('formularioUsuario').style.display = 'none';
+    }
+
+    async function guardarUsuario() {
+        const username = document.getElementById('userNombre').value;
+        const password = document.getElementById('userPassword').value;
+        const rol = document.getElementById('userRol').value;
+        if (!username || !password) {
+            alert('❌ Completa todos los campos');
+            return;
+        }
+        try {
+            const res = await fetch(`${API_URL}/api/usuarios`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ username, password, rol })
+            });
+            const data = await res.json();
+            if (data.success) {
+                ocultarFormularioUsuario();
+                cargarUsuarios();
+                alert('✅ Usuario creado');
+            } else {
+                alert('❌ ' + data.error);
+            }
+        } catch (e) { alert('Error'); }
+    }
+
+    async function eliminarUsuario(id) {
+        if (!confirm('¿Eliminar usuario?')) return;
+        try {
+            await fetch(`${API_URL}/api/usuarios/${id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            cargarUsuarios();
+        } catch (e) { alert('Error'); }
+    }
+
+    // ==========================================
+    // CERRAR SESIÓN
+    // ==========================================
+
+    function cerrarSesion() {
+        localStorage.clear();
+        token = '';
+        usuarioActual = null;
+        document.getElementById('login').style.display = 'block';
+        document.getElementById('dashboard').style.display = 'none';
+    }
+
+    // ==========================================
+    // VERIFICAR SESIÓN
+    // ==========================================
+
+    const tk = localStorage.getItem('token');
+    const usr = localStorage.getItem('usuario');
+    if (tk && usr) {
+        token = tk;
+        usuarioActual = JSON.parse(usr);
+        document.getElementById('login').style.display = 'none';
+        document.getElementById('dashboard').style.display = 'block';
+        document.getElementById('infoUsuario').textContent = `👤 ${usuarioActual.username} (${usuarioActual.rol})`;
+        cargarTodo();
+    }
+</script>
+
+</body>
+</html>
